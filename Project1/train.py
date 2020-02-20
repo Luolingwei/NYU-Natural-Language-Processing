@@ -1,8 +1,8 @@
 from collections import defaultdict
 
 
-def corpus_cal():
-    file = open("training_corpus.pos", "r").read()
+def corpus_cal(corpus):
+    file = open(corpus, "r").read()
     lines = file.splitlines()
 
     tag_count=defaultdict(int)
@@ -47,7 +47,80 @@ def corpus_cal():
         poss=tagTrans_count[trans]/trans_sum
         tagTrans_poss[trans[1]][trans]=poss
 
-    print("success")
+    return tag_poss,word2tag_poss,tagTrans_poss
+
+def sample_predict(tag_poss,word2tag_poss,tagTrans_poss,sample):
+    file = open(sample, "r")
+    line_number=0
+    out=[]
+    for line in file.readlines():
+
+        word=line.rstrip()
+        if word=="":
+            out.append(("",""))
+            continue
+
+        if line_number==0:
+            if word in word2tag_poss:
+                ans_tag=max(word2tag_poss[word].keys(),key=lambda x:word2tag_poss[word][x])
+            else:
+                ans_tag=max(tag_poss.keys(),key=lambda x:tag_poss[x])
+        else:
+            pre_tag=out[-1][1]
+            if word in word2tag_poss:
+                max_poss = 0
+                for curtag,poss in word2tag_poss[word].items():
+                    if poss*tagTrans_poss[curtag][(pre_tag,curtag)]!=0:
+                        # (pre_tag,curtag) transfer can be found
+                        curposs=poss*tagTrans_poss[curtag][(pre_tag,curtag)]
+                    else:
+                        curposs=poss
+
+                    if curposs>max_poss:
+                        max_poss=curposs
+                        ans_tag=curtag
+            else:
+                max_poss = 0
+                for curtag,poss in tag_poss.items():
+                    if poss*tagTrans_poss[curtag][(pre_tag,curtag)]!=0:
+                        # (pre_tag,curtag) transfer can be found
+                        curposs=poss*tagTrans_poss[curtag][(pre_tag,curtag)]
+                    else:
+                        curposs=poss
+
+                    if curposs > max_poss:
+                        max_poss = curposs
+                        ans_tag = curtag
+
+        out.append((word,ans_tag))
+        line_number+=1
+    return out
+
+def write_out(out,outname):
+    # write to file
+    with open(outname, "w+") as f:
+        for word,tag in out:
+            if word == "":
+                f.write("\n")
+            else:
+                f.write(word)
+                f.write("\t")
+                f.write(tag)
+                f.write("\n")
 
 
-corpus_cal()
+if __name__ == "__main__":
+    corpus="training_corpus.pos"
+    tag_poss,word2tag_poss,tagTrans_poss=corpus_cal(corpus)
+
+    # wirte out 24 test file
+    sample="WSJ_24.words"
+    outname="out24.pos"
+    out=sample_predict(tag_poss,word2tag_poss,tagTrans_poss,sample)
+    write_out(out,outname)
+
+    # write out 23 predict file
+    sample="WSJ_23.words"
+    outname="WSJ_23.pos"
+    out=sample_predict(tag_poss,word2tag_poss,tagTrans_poss,sample)
+    write_out(out,outname)
