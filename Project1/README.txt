@@ -1,36 +1,25 @@
-HW4 write-up
+NLP HW4 write-up
 
-Sections 02-21 Training
-Section 23 Test
-Section 24 Development
+The score on the development corpus (WSJ_24.pos): 
+	31420 out of 32853 tags correct
+  	accuracy: 95.638146
 
-The other sections (00, 01, 22) are typically not used, although
-section 00 has a training/development feel to it (many papers cite
-examples from 00 files).
+Submitted files:
 
-There are 2 possible versions of each file:
+	1 Source code: "train.py". It takes "training_corpus.pos" as the training corpus. After the training, it also takes WSJ_23.words and WSJ_24.words as predict source files, and it will output the corresponding tagged files "WSJ_23.pos" and "out24.pos".
+	Note: "out24.pos" is used for model scoring. And "WSJ_23.pos" is the required prediction.
 
-1) file.pos -- there are two columns separated by a tab:
-   1st column: token
-   2nd column: POS tag
-   Blank lines separate sentences.
+	2 "WSJ_23.pos". It is the tagged file my program output.
 
-   This is the format of training files, system output, and development
-   or test files used for scoring purposes.
 
-2) file.words -- one token per line, with blank lines between sentences.
-   Format of an input file for a tagging program.
+The tagging logic in my program:
 
-For HW4, we are distributing the following files:
+	Training: Based on the training corpus, I will calculate and get 3 dictionary.
+		  (1) tagTrans_poss: {tagA:{(tag1,tagA):poss1,(tag2,tagA):poss2}}, it stores the tag transition possibility of each (preTag, curTag).
+		  (2) tag_poss: {tagA: possibility}, it stores the occurrence possibility of all tags.
+		  (3) word2tag_poss: {wordA:{tag1:poss1,tag2:poss2}}, it stores the tag possibility for a certain word.
 
-WSJ_02-21.pos  -- to use as the training corpus
-
-WSJ_24.words   -- to use as your development set (for testing your system)
-
-WSJ_24.pos     -- to use to check how well your system is doing
-
-WSJ_23.words -- to run your system on.  You should produce a file in
-	     	the .pos format as your output and submit it as per the
-		submission instructions to be announced.
-
-score.py -- this is a scorer which you can use on your development corpus.
+	Tagging: I calculated tag using different strategies for different cases.
+		  (1) for line0, it has no previous line. If it appeared in corpus, we use word2tag_poss to extract tag with largest poss. If it's not in corpus (unknown word), we use tag_poss to extract tag with largest poss.
+		  (2) for words appeared in corpus, we use word2tag_poss to extract tag poss, and also extract tagTransition poss using tagTrans_poss. If tagTransition poss exists, we use tag poss*tagTransition poss as poss of current tag. Otherwise, we use tag poss * average poss of (tagTrans_poss[tag]). We set tag of largest poss as final tag for current word.
+		  (3) for words not in the corpus (unknown words). We use tag_poss to extract tag poss, and also extract tagTransition poss using tagTrans_poss. If tagTransition poss exists, we use tag poss*tagTransition poss as poss of current tag. Otherwise, we use tag poss * average poss of (tagTrans_poss[tag]). We set tag of largest poss as final tag for current word.

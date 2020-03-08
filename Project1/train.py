@@ -74,7 +74,7 @@ def sample_predict(tag_poss,word2tag_poss,tagTrans_poss,sample):
                         # (pre_tag,curtag) transfer can be found
                         curposs=poss*tagTrans_poss[curtag][(pre_tag,curtag)]
                     else:
-                        curposs=poss
+                        curposs=poss*(sum(tagTrans_poss[curtag].values())/len(tagTrans_poss[curtag]))
 
                     if curposs>max_poss:
                         max_poss=curposs
@@ -86,7 +86,7 @@ def sample_predict(tag_poss,word2tag_poss,tagTrans_poss,sample):
                         # (pre_tag,curtag) transfer can be found
                         curposs=poss*tagTrans_poss[curtag][(pre_tag,curtag)]
                     else:
-                        curposs=poss
+                        curposs=poss*(sum(tagTrans_poss[curtag].values())/len(tagTrans_poss[curtag]))
 
                     if curposs > max_poss:
                         max_poss = curposs
