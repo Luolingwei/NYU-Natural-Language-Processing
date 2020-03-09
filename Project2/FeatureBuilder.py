@@ -1,7 +1,9 @@
 from nltk.classify import MaxentClassifier
 
+
 def trans_dic(words):
     return {word:True for word in words}
+
 
 def loadTrainData(filePath):
     trainTokenList = []
@@ -12,6 +14,7 @@ def loadTrainData(filePath):
             token=line.split("\t")
             trainTokenList.append(token)
     return trainTokenList
+
 
 def loadTestData(filePath):
     testokenList = []
@@ -31,9 +34,10 @@ def create_trainToks(tokenList):
     # pairs, the first member of which is a featureset,
     # and the second of which is a classification label.
     trainToks = []
-    for token in tokenList:
-        tokenName,tokenPOS,tokenBIO,tokenLabel = token[0],token[1],token[2],token[3]
-        featureset = [tokenName,tokenPOS,tokenBIO]
+    for i,token in enumerate(tokenList):
+        # add prior state
+        tokenName,tokenPOS,tokenBIO,tokenLabel,prevWord,prevPOS,prevLabel = token[0],token[1],token[2],token[3],'prev_'+tokenList[max(0,i-1)][0],'prev_'+tokenList[max(0,i-1)][1],'prev_'+tokenList[max(0,i-1)][3]
+        featureset = [tokenName,tokenPOS]
         trainToks.append((trans_dic(featureset),tokenLabel))
     return trainToks
 
@@ -44,31 +48,67 @@ def create_testFeatureSet(testokenList):
     # pairs, the first member of which is a featureset,
     # and the second of which is a classification label.
     testFratureSet = []
-    for token in testokenList:
+    for i,token in enumerate(testokenList):
         if token!="":
             tokenName,tokenPOS,tokenBIO = token[0],token[1],token[2]
-            featureset = [tokenName,tokenPOS,tokenBIO]
-            testFratureSet.append(trans_dic(featureset))
+            featureset = [tokenName,tokenPOS]
+            testFratureSet.append(featureset)
         else:
             testFratureSet.append("")
     return testFratureSet
 
 
-
-if __name__ == "__main__":
-    trainfilePath = "Test/CONLL_train.pos-chunk-name"
-    testfilePath = "Test/CONLL_dev.pos-chunk"
-    trainTokenList = loadTrainData(trainfilePath)
-    testokenList = loadTestData(testfilePath)
-    trainToks = create_trainToks(trainTokenList)
-    testFratureSet = create_testFeatureSet(testokenList)
-    model = MaxentClassifier.train(trainToks)
+def predict(model,testFratureSet):
 
     labels = []
-    for feature in testFratureSet:
+    for i,feature in enumerate(testFratureSet):
         if feature!="":
+            # # add previous label to feature
+            # j=i-1
+            # while j>=0 and labels[j][0]=="":
+            #     j-=1
+            #
+            # if j==-1: feature+=['prev_'+feature[0],'prev_'+feature[1],'prev_O']
+            # else: feature+=['prev_'+testFratureSet[j][0],'prev_'+testFratureSet[j][1],'prev_'+labels[j][1]] # prevPOS
+            # # predict based on feature [tokenName,tokenPOS,tokenBIO,prevLabel]
+            feature = trans_dic(feature)
             label = model.classify(feature)
             labels.append((list(feature.keys())[0],label))
         else:
-            labels.append("")
-    print("success")
+            labels.append(("",""))
+    return labels
+
+
+def write_out(out,outname):
+    # write to file
+    with open(outname, "w+") as f:
+        for word,tag in out:
+            if word == "":
+                f.write("\n")
+            else:
+                f.write(word)
+                f.write("\t")
+                f.write(tag)
+                f.write("\n")
+
+if __name__ == "__main__":
+    # load files
+    trainfilePath = "CONLL_NAME_CORPUS_FOR_STUDENTS/CONLL_train.pos-chunk-name"
+    testfilePath = "CONLL_NAME_CORPUS_FOR_STUDENTS/CONLL_dev.pos-chunk"
+    predictfilePath = "CONLL_NAME_CORPUS_FOR_STUDENTS/CONLL_test.pos-chunk"
+    trainTokenList = loadTrainData(trainfilePath)
+    testTokenList = loadTestData(testfilePath)
+    predictTokenList = loadTestData(predictfilePath)
+
+    # train model
+    trainToks = create_trainToks(trainTokenList)
+    model = MaxentClassifier.train(trainToks)
+
+    # predict
+    testFratureSet = create_testFeatureSet(testTokenList)
+    labels = predict(model,testFratureSet)
+    write_out(labels,"response.name")
+
+    predictFeatureSet = create_testFeatureSet(predictTokenList)
+    labels = predict(model,predictFeatureSet)
+    write_out(labels,"CONLL_test.name")
