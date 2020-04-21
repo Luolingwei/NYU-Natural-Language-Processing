@@ -3,3 +3,4 @@ This is my projects of NYU course "Natural Language Processing"
 
 Project 1: POS tagger using the Viterbi algorithm  
 Project 2: name tagger using the MaxEnt model   
+Project 3: word embedding using Stanford glove model     
