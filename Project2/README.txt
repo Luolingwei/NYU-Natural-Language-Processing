@@ -7,7 +7,20 @@ Submitted files:
 	2 CONLL_test.name: it's the program output on test data
 
 
-The featureSets I tried:
+Best score on development corpus:
+
+	FeatureSet3: [tokenName,tokenPOS]
+	  49372 out of 51578 tags correct
+	  accuracy: 95.72
+	  5917 groups in key
+	  6269 groups in response
+	  4351 correct groups
+  	  precision: 69.41
+  	  recall:    73.53
+  	  F1:        71.41
+
+
+All featureSets I tried:
 
 	FeatureSet1: [tokenName]
 	  48805 out of 51578 tags correct
