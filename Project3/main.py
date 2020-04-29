@@ -24,13 +24,9 @@ def score_embeddings(pairs):
     return machine_score
 
 def cosine_similarity(vector1,vector2):
-    vector_a = np.mat(vector1)
-    vector_b = np.mat(vector2)
-    num = float(vector_a * vector_b.T)
-    denom = np.linalg.norm(vector_a) * np.linalg.norm(vector_b)
-    cos = num / denom
-    sim = 0.5 + 0.5 * cos
-    return sim
+    vec1 = np.array(vector1)
+    vec2 = np.array(vector2)
+    return np.dot(vec1,vec2)/(np.linalg.norm(vec1)*(np.linalg.norm(vec2)))
 
 def analogy(word1,pre_word1,word2):
     vector1 = np.array(model.wv[word1])
@@ -41,12 +37,12 @@ def analogy(word1,pre_word1,word2):
     most_similar = ""
     maxSimilarity = -1
     for word in model.index2word:
-        curvector = model.wv[word]
-        curSimilarity = cosine_similarity(curvector,pre_vector2)
-        if curSimilarity > maxSimilarity:
-            most_similar, maxSimilarity = word, curSimilarity
+        if word!=pre_word1:
+            curvector = model.wv[word]
+            curSimilarity = cosine_similarity(curvector,pre_vector2)
+            if curSimilarity > maxSimilarity:
+                most_similar, maxSimilarity = word, curSimilarity
     return most_similar
-
 
 
 if __name__ == "__main__":
@@ -82,3 +78,27 @@ if __name__ == "__main__":
 
         f.write("analogy for [brother,boy,sister] is: ")
         f.write(analogy("brother","boy","sister") + "\n")
+
+        f.write("analogy for [china,beijing,america] is: ")
+        f.write(analogy("china","beijing","america") + "\n")
+
+        f.write("analogy for [tokyo,japan,beijing] is: ")
+        f.write(analogy("tokyo","japan","beijing") + "\n")
+
+        f.write("analogy for [summer,hot,winter] is: ")
+        f.write(analogy("summer", "hot", "winter") + "\n")
+
+        f.write("analogy for [bad,worse,good] is: ")
+        f.write(analogy("bad", "worse", "good") + "\n")
+
+        f.write("analogy for [sunny,sun,rainy] is: ")
+        f.write(analogy("sunny", "sun", "rainy") + "\n")
+
+        f.write("analogy for [big,heavy,small] is: ")
+        f.write(analogy("big", "heavy", "small") + "\n")
+
+        f.write("analogy for [happy,happiness,sad] is: ")
+        f.write(analogy("happy", "happiness", "sad") + "\n")
+
+        f.write("analogy for [plant,oxygen,animal] is: ")
+        f.write(analogy("plant", "oxygen", "animal") + "\n")
